@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>🌀 overlay webview · full‑screen controls 🧹</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>🧩 side panel webview · controls docked</title>
     <style>
         * {
             box-sizing: border-box;
@@ -12,104 +12,68 @@
             padding: 0;
         }
         body {
-            background: #000;          /* fallback */
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;           /* kill outer scroll */
-        }
-        /* full‑screen overlay card */
-        .browser-card {
-            position: relative;
-            width: 100vw;
+            background: #1a1a2a;
             height: 100vh;
-            background: #2d2d44;
             display: flex;
-            flex-direction: column;
             overflow: hidden;
         }
-        /* webview fills everything */
-        .webview-container {
-            flex: 1;
-            background: #1c1c2c;
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: white;
-            display: block;
+
+        /* --- SIDE PANEL (left) --- */
+        .control-panel {
+            width: 300px;
+            max-width: 85vw;
+            background: rgba(28, 28, 40, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 16px;
+            gap: 24px;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            color: #eee;
+            overflow-y: auto;
         }
 
-        /* ----- floating toolbar (overlay) ----- */
-        .toolbar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(20, 20, 35, 0.75);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 12px 16px;
+        /* panel header */
+        .panel-header {
+            font-size: 1.4rem;
+            font-weight: 300;
+            letter-spacing: 1px;
             display: flex;
-            flex-wrap: wrap;
             align-items: center;
             gap: 8px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 20;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 12px;
+            margin-bottom: 8px;
+        }
+        .panel-header span {
+            font-size: 1.8rem;
         }
 
-        /* ----- floating status bar (overlay) ----- */
-        .status-bar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(20, 20, 35, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            color: #e0e0f0;
-            font-size: 0.8rem;
-            padding: 8px 16px;
+        /* navigation row inside panel */
+        .nav-row {
             display: flex;
-            gap: 16px;
-            align-items: center;
-            flex-wrap: wrap;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            z-index: 20;
-            text-shadow: 0 1px 2px black;
-        }
-
-        /* make buttons pop slightly */
-        .nav-buttons {
-            display: flex;
-            gap: 6px;
-            margin-right: 4px;
+            gap: 12px;
+            justify-content: space-between;
         }
         .nav-btn {
-            background: rgba(70, 70, 100, 0.8);
-            border: none;
+            background: rgba(70, 70, 100, 0.7);
+            border: 1px solid rgba(255,255,255,0.15);
             color: white;
-            width: 44px;
-            height: 44px;
-            border-radius: 40px;
-            display: inline-flex;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            font-size: 1.8rem;
+            display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.6rem;
-            font-weight: 500;
             cursor: pointer;
-            transition: 0.15s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-            line-height: 1;
-            min-width: 44px;
             backdrop-filter: blur(4px);
-            border: 1px solid rgba(255,255,255,0.15);
+            transition: 0.15s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            flex-shrink: 0;
         }
         .nav-btn:hover {
             background: rgba(100, 100, 140, 0.9);
@@ -120,73 +84,77 @@
             transform: scale(0.98);
         }
 
+        /* url bar inside panel */
+        .url-section {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .url-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            opacity: 0.7;
+            letter-spacing: 0.5px;
+        }
         .url-bar {
-            flex: 1;
-            min-width: 200px;
             display: flex;
             background: rgba(10, 10, 20, 0.6);
             border-radius: 40px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             overflow: hidden;
             backdrop-filter: blur(4px);
-            box-shadow: inset 0 1px 6px rgba(0,0,0,0.5);
         }
         .url-input {
             flex: 1;
             background: transparent;
             border: none;
-            padding: 12px 18px;
-            color: #f0f0fa;
+            padding: 14px 18px;
+            color: white;
             font-size: 1rem;
             outline: none;
-            min-height: 44px;
+            min-width: 0;
         }
         .url-input::placeholder {
-            color: #b0b0d0;
-            font-style: italic;
+            color: #aaa;
         }
         .go-btn {
             background: rgba(90, 90, 130, 0.9);
             border: none;
             color: white;
             font-weight: 600;
-            padding: 0 20px;
+            padding: 0 22px;
             cursor: pointer;
             font-size: 1rem;
-            letter-spacing: 0.3px;
-            transition: 0.1s;
             border-left: 1px solid rgba(255,255,255,0.2);
-            min-height: 44px;
-            min-width: 60px;
-            backdrop-filter: blur(4px);
+            transition: 0.1s;
         }
         .go-btn:hover {
-            background: rgba(110, 110, 160, 0.9);
+            background: rgba(120, 120, 170, 0.9);
         }
 
+        /* action buttons stacked */
         .action-group {
             display: flex;
-            gap: 6px;
-            margin-left: 4px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 8px;
         }
         .action-btn {
-            background: rgba(60, 60, 90, 0.8);
+            background: rgba(60, 60, 90, 0.7);
             border: 1px solid rgba(255,255,255,0.15);
-            color: #fff;
-            padding: 10px 16px;
-            border-radius: 32px;
-            font-size: 0.9rem;
+            color: white;
+            padding: 14px 16px;
+            border-radius: 40px;
+            font-size: 1rem;
             font-weight: 500;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 12px;
             cursor: pointer;
-            white-space: nowrap;
-            transition: 0.15s;
             backdrop-filter: blur(4px);
+            transition: 0.15s;
             box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-            min-height: 44px;
+            width: 100%;
         }
         .action-btn:hover {
             background: rgba(90, 90, 130, 0.9);
@@ -196,104 +164,168 @@
             background: rgba(40, 40, 70, 0.9);
             transform: translateY(1px);
         }
-        .icon {
-            font-size: 1.2rem;
-            line-height: 1;
+        .action-btn .icon {
+            font-size: 1.4rem;
+            min-width: 30px;
+            text-align: center;
         }
 
+        /* status area inside panel */
+        .status-area {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.85rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 20px;
+            padding: 16px;
+        }
+        .status-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
         .cache-message {
             color: #b0e0b0;
             font-weight: 400;
             word-break: break-word;
+            background: rgba(0,0,0,0.3);
+            padding: 8px 12px;
+            border-radius: 30px;
         }
-        .spacer {
-            flex: 1;
+        .hint {
+            opacity: 0.7;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        /* 📱 mobile fine‑tuning */
-        @media (max-width: 600px) {
-            .toolbar {
-                padding: 8px;
-                gap: 6px;
+        /* --- WEBVIEW (fills rest) --- */
+        .webview-container {
+            flex: 1;
+            background: #1c1c2c;
+            height: 100vh;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+            display: block;
+        }
+
+        /* small screen: panel becomes top bar? but we keep side panel as overlay-ish? 
+           for narrow screens, we collapse panel to a smaller width */
+        @media (max-width: 700px) {
+            .control-panel {
+                width: 260px;
+                padding: 16px 12px;
             }
-            .nav-buttons {
+            .nav-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 1.6rem;
+            }
+        }
+        @media (max-width: 500px) {
+            body {
+                flex-direction: column;
+            }
+            .control-panel {
+                width: 100%;
+                max-width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid rgba(255,255,255,0.2);
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 12px;
+                padding: 12px;
+            }
+            .panel-header {
+                display: none;  /* hide header on very small to save space */
+            }
+            .nav-row {
                 order: 1;
             }
-            .url-bar {
+            .url-section {
                 order: 2;
-                width: 100%;
-                min-width: 100%;
-                margin: 4px 0;
+                flex: 1;
+                min-width: 200px;
             }
             .action-group {
                 order: 3;
+                flex-direction: row;
                 width: 100%;
                 justify-content: space-around;
-                margin-left: 0;
             }
             .action-btn {
                 flex: 1;
+                padding: 12px 6px;
                 justify-content: center;
-                padding: 10px 4px;
-                font-size: 0.8rem;
-                white-space: normal;
-                min-width: 70px;
+                font-size: 0.85rem;
             }
-            .status-bar {
-                font-size: 0.7rem;
-                gap: 8px;
-                padding: 6px 12px;
+            .status-area {
+                order: 4;
+                width: 100%;
+                margin-top: 0;
+                padding: 12px;
             }
-        }
-        @media (max-width: 380px) {
-            .action-btn {
-                font-size: 0.7rem;
-                padding: 8px 2px;
-            }
-            .url-input {
-                padding: 10px 12px;
-                font-size: 0.9rem;
+            .webview-container {
+                height: calc(100vh - 180px); /* rough, but fine */
             }
         }
     </style>
 </head>
 <body>
-    <div class="browser-card">
-        <!-- webview fills the whole card -->
-        <div class="webview-container">
-            <iframe id="webview" src="https://example.com" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation allow-top-navigation"></iframe>
+    <!-- SIDE PANEL (controls) -->
+    <div class="control-panel">
+        <div class="panel-header">
+            <span>🧰</span> WEBVIEW CONTROLS
         </div>
 
-        <!-- floating toolbar (overlay) -->
-        <div class="toolbar">
-            <div class="nav-buttons">
-                <button class="nav-btn" id="backBtn" title="Back (if same-origin)">←</button>
-                <button class="nav-btn" id="forwardBtn" title="Forward (if same-origin)">→</button>
-            </div>
+        <!-- navigation buttons -->
+        <div class="nav-row">
+            <button class="nav-btn" id="backBtn" title="Back (if same-origin)">←</button>
+            <button class="nav-btn" id="forwardBtn" title="Forward (if same-origin)">→</button>
+        </div>
+
+        <!-- URL section -->
+        <div class="url-section">
+            <div class="url-label">enter address</div>
             <div class="url-bar">
-                <input type="text" class="url-input" id="urlInput" placeholder="https:// or http://" value="https://example.com">
+                <input type="text" class="url-input" id="urlInput" placeholder="https://example.com" value="https://example.com">
                 <button class="go-btn" id="goBtn">GO</button>
             </div>
-            <div class="action-group">
-                <button class="action-btn" id="reloadBtn" title="Reload page (normal)">
-                    <span class="icon">↻</span> <span class="btn-text">Reload</span>
-                </button>
-                <button class="action-btn" id="hardReloadBtn" title="Hard reload + cache bust">
-                    <span class="icon">⚡</span> <span class="btn-text">Hard</span>
-                </button>
-                <button class="action-btn" id="clearCacheBtn" title="Clear Cache Storage + reload">
-                    <span class="icon">🗑️</span> <span class="btn-text">Empty</span>
-                </button>
-            </div>
         </div>
 
-        <!-- floating status bar (overlay) -->
-        <div class="status-bar">
-            <span>📦 Cache:</span>
-            <span class="cache-message" id="cacheMsg">—</span>
-            <span class="spacer"></span>
-            <span id="originHint">ℹ️ same-origin only</span>
+        <!-- action buttons stacked -->
+        <div class="action-group">
+            <button class="action-btn" id="reloadBtn" title="Reload page (normal)">
+                <span class="icon">↻</span> Reload
+            </button>
+            <button class="action-btn" id="hardReloadBtn" title="Hard reload + cache bust">
+                <span class="icon">⚡</span> Hard reload
+            </button>
+            <button class="action-btn" id="clearCacheBtn" title="Clear Cache Storage + reload">
+                <span class="icon">🗑️</span> Empty cache
+            </button>
         </div>
+
+        <!-- status area inside panel -->
+        <div class="status-area">
+            <div class="status-row">
+                <span style="opacity:0.8;">📦 cache status</span>
+                <span class="cache-message" id="cacheMsg">—</span>
+                <span class="hint">ℹ️ back/forward: same-origin only</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- WEBVIEW CONTAINER (fills rest) -->
+    <div class="webview-container">
+        <iframe id="webview" src="https://example.com" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation allow-top-navigation"></iframe>
     </div>
 
     <script>
@@ -314,7 +346,7 @@
                 setTimeout(() => {
                     if (cacheMsgSpan.textContent === msg) {
                         cacheMsgSpan.textContent = '—';
-                        cacheMsgSpan.style.color = '#b0b0d0';
+                        cacheMsgSpan.style.color = '#b0e0b0';
                     }
                 }, 4000);
             }
@@ -450,4 +482,4 @@
         })();
     </script>
 </body>
-</html>
+    </html>
