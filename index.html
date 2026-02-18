@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌀 Cache Crusher · webview with hidden powers 🧹</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #1e1e2f;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+        .browser-card {
+            width: 100%;
+            max-width: 1200px;
+            height: 90vh;
+            background: #2d2d44;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            backdrop-filter: blur(2px);
+        }
+        /* toolbar */
+        .toolbar {
+            background: #3a3a55;
+            padding: 12px 16px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #252535;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 6px;
+            margin-right: 4px;
+        }
+        .nav-btn {
+            background: #56567a;
+            border: none;
+            color: #eeeef5;
+            width: 36px;
+            height: 36px;
+            border-radius: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            line-height: 1;
+        }
+        .nav-btn:hover {
+            background: #6f6f9a;
+            color: white;
+            transform: scale(1.02);
+        }
+        .nav-btn:active {
+            background: #434366;
+            transform: scale(0.98);
+            box-shadow: inset 0 1px 3px black;
+        }
+        .url-bar {
+            flex: 1;
+            min-width: 240px;
+            display: flex;
+            background: #1f1f30;
+            border-radius: 40px;
+            border: 1px solid #3d3d5a;
+            overflow: hidden;
+            box-shadow: inset 0 1px 4px #0a0a14;
+        }
+        .url-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 10px 18px;
+            color: #f0f0fa;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .url-input::placeholder {
+            color: #7a7a9a;
+            font-style: italic;
+        }
+        .go-btn {
+            background: #5d5d8a;
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 0 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+            transition: 0.1s;
+            border-left: 1px solid #3d3d60;
+        }
+        .go-btn:hover {
+            background: #7474ac;
+        }
+        .action-group {
+            display: flex;
+            gap: 6px;
+            margin-left: 4px;
+        }
+        .action-btn {
+            background: #40405c;
+            border: none;
+            color: #ddddf0;
+            padding: 8px 16px;
+            border-radius: 32px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: 0.15s;
+            border: 1px solid #5a5a7a;
+            box-shadow: 0 2px 3px #1a1a28;
+        }
+        .action-btn:hover {
+            background: #54547a;
+            color: white;
+            border-color: #7a7ab0;
+        }
+        .action-btn:active {
+            background: #33334d;
+            transform: translateY(1px);
+            box-shadow: none;
+        }
+        .icon {
+            font-size: 1.1rem;
+            line-height: 1;
+        }
+        /* webview area */
+        .webview-container {
+            flex: 1;
+            background: #1c1c2c;
+            position: relative;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+        .status-bar {
+            background: #2a2a40;
+            color: #b0b0d0;
+            font-size: 0.8rem;
+            padding: 6px 16px;
+            border-top: 1px solid #252535;
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+        .cache-message {
+            color: #b0e0b0;
+            font-weight: 400;
+            word-break: break-word;
+        }
+        .spacer {
+            flex: 1;
+        }
+        button:disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="browser-card">
+        <!-- toolbar -->
+        <div class="toolbar">
+            <div class="nav-buttons">
+                <button class="nav-btn" id="backBtn" title="Back (if same-origin)">←</button>
+                <button class="nav-btn" id="forwardBtn" title="Forward (if same-origin)">→</button>
+            </div>
+            <div class="url-bar">
+                <input type="text" class="url-input" id="urlInput" placeholder="https:// or http://" value="https://example.com">
+                <button class="go-btn" id="goBtn">GO</button>
+            </div>
+            <div class="action-group">
+                <button class="action-btn" id="reloadBtn" title="Reload page (normal)">
+                    <span class="icon">↻</span> Reload
+                </button>
+                <button class="action-btn" id="hardReloadBtn" title="Hard reload + cache bust (timestamp)">
+                    <span class="icon">⚡</span> Hard reload
+                </button>
+                <button class="action-btn" id="clearCacheBtn" title="Clear Cache Storage (origin only) + reload">
+                    <span class="icon">🗑️</span> Empty cache
+                </button>
+            </div>
+        </div>
+
+        <!-- webview iframe -->
+        <div class="webview-container">
+            <iframe id="webview" src="https://example.com" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation allow-top-navigation"></iframe>
+        </div>
+
+        <!-- status / feedback -->
+        <div class="status-bar">
+            <span>📦 Cache status:</span>
+            <span class="cache-message" id="cacheMsg">—</span>
+            <span class="spacer"></span>
+            <span id="originHint">ℹ️ Back/forward work only for same-origin</span>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // DOM elements
+            const iframe = document.getElementById('webview');
+            const urlInput = document.getElementById('urlInput');
+            const goBtn = document.getElementById('goBtn');
+            const reloadBtn = document.getElementById('reloadBtn');
+            const hardReloadBtn = document.getElementById('hardReloadBtn');
+            const clearCacheBtn = document.getElementById('clearCacheBtn');
+            const backBtn = document.getElementById('backBtn');
+            const forwardBtn = document.getElementById('forwardBtn');
+            const cacheMsgSpan = document.getElementById('cacheMsg');
+
+            // Helper to update placeholder / feedback
+            function setCacheMessage(msg, isSuccess = true) {
+                cacheMsgSpan.textContent = msg;
+                cacheMsgSpan.style.color = isSuccess ? '#b0e0b0' : '#f9b5b5';
+                setTimeout(() => {
+                    if (cacheMsgSpan.textContent === msg) {
+                        cacheMsgSpan.textContent = '—';
+                        cacheMsgSpan.style.color = '#b0b0d0';
+                    }
+                }, 4000);
+            }
+
+            // Navigate to URL (ensuring http:// prefix if missing)
+            function navigateTo(url) {
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    url = 'https://' + url;
+                }
+                try {
+                    iframe.src = url;
+                    urlInput.value = url;   // update input
+                } catch (e) {
+                    setCacheMessage('Invalid URL', false);
+                }
+            }
+
+            // GO button / enter
+            goBtn.addEventListener('click', () => {
+                navigateTo(urlInput.value.trim());
+            });
+
+            urlInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    goBtn.click();
+                }
+            });
+
+            // Normal reload: reassign src (works across origins)
+            reloadBtn.addEventListener('click', () => {
+                if (!iframe.src || iframe.src === 'about:blank') return;
+                // Force a reload by resetting src
+                const currentSrc = iframe.src;
+                iframe.src = '';
+                iframe.src = currentSrc;
+                setCacheMessage('↻ Reload triggered');
+            });
+
+            // Hard reload: add cache-busting query parameter (timestamp)
+            hardReloadBtn.addEventListener('click', () => {
+                if (!iframe.src || iframe.src === 'about:blank') return;
+                try {
+                    const url = new URL(iframe.src);
+                    url.searchParams.set('_cb', Date.now().toString());
+                    iframe.src = url.toString();
+                    setCacheMessage('⚡ Hard reload (cache bust: ?_cb=...)');
+                } catch (e) {
+                    // fallback if URL parser fails
+                    const separator = iframe.src.includes('?') ? '&' : '?';
+                    iframe.src = iframe.src + separator + '_cb=' + Date.now();
+                    setCacheMessage('⚡ Hard reload (fallback)');
+                }
+            });
+
+            // "Empty cache" – try to clear Cache Storage API + reload with cache busting
+            clearCacheBtn.addEventListener('click', async () => {
+                let cacheClearSuccess = false;
+                let message = '';
+
+                // Attempt to clear Cache Storage (only for this origin)
+                if ('caches' in window) {
+                    try {
+                        const keys = await caches.keys();
+                        if (keys.length > 0) {
+                            await Promise.all(keys.map(key => caches.delete(key)));
+                            message = `🗑️ Cleared ${keys.length} cache storage(s) from this origin.`;
+                            cacheClearSuccess = true;
+                        } else {
+                            message = '📭 No Cache Storage found on this origin.';
+                            cacheClearSuccess = true; // still considered "success" info
+                        }
+                    } catch (err) {
+                        console.warn('Cache API error:', err);
+                        message = '⚠️ Could not clear Cache Storage.';
+                        cacheClearSuccess = false;
+                    }
+                } else {
+                    message = '⚠️ Cache Storage API not supported.';
+                }
+
+                // Also perform a hard reload to bust HTTP cache (if iframe has content)
+                if (iframe.src && iframe.src !== 'about:blank') {
+                    try {
+                        const url = new URL(iframe.src);
+                        url.searchParams.set('_emptyCache', Date.now().toString());
+                        iframe.src = url.toString();
+                        message += ' + hard reload with cache bust.';
+                    } catch (e) {
+                        // fallback
+                        const sep = iframe.src.includes('?') ? '&' : '?';
+                        iframe.src = iframe.src + sep + '_emptyCache=' + Date.now();
+                        message += ' + reload (fallback).';
+                    }
+                } else {
+                    // no iframe source, navigate to default maybe?
+                    iframe.src = 'https://example.com?_=' + Date.now();
+                    message += ' Loaded default page.';
+                }
+
+                setCacheMessage(message, cacheClearSuccess);
+            });
+
+            // Back/Forward – attempt to use history (only works same-origin)
+            backBtn.addEventListener('click', () => {
+                try {
+                    if (iframe.contentWindow && iframe.contentWindow.history) {
+                        iframe.contentWindow.history.back();
+                        setCacheMessage('← back (if same-origin & history exists)');
+                    } else {
+                        setCacheMessage('❌ Cannot access history (cross-origin)', false);
+                    }
+                } catch (e) {
+                    setCacheMessage('❌ back failed – cross-origin restriction', false);
+                }
+            });
+
+            forwardBtn.addEventListener('click', () => {
+                try {
+                    if (iframe.contentWindow && iframe.contentWindow.history) {
+                        iframe.contentWindow.history.forward();
+                        setCacheMessage('→ forward (if same-origin)');
+                    } else {
+                        setCacheMessage('❌ Cannot access history (cross-origin)', false);
+                    }
+                } catch (e) {
+                    setCacheMessage('❌ forward failed – cross-origin', false);
+                }
+            });
+
+            // If iframe loads new page, sync URL input (but only if same-origin, else fallback)
+            iframe.addEventListener('load', () => {
+                try {
+                    const iframeUrl = iframe.contentWindow.location.href;
+                    if (iframeUrl && iframeUrl !== 'about:blank') {
+                        urlInput.value = iframeUrl;
+                    }
+                } catch (e) {
+                    // cross-origin – we can still try to get src attribute
+                    const srcAttr = iframe.src;
+                    if (srcAttr && srcAttr !== 'about:blank') {
+                        urlInput.value = srcAttr;
+                    }
+                }
+                // Briefly show that page loaded
+                setCacheMessage('✓ Page loaded', true);
+            });
+
+            // initial sync
+            window.addEventListener('load', () => {
+                if (iframe.src) urlInput.value = iframe.src;
+            });
+        })();
+    </script>
+</body>
+</html>
