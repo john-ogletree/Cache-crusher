@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌀 Cache Crusher · webview with hidden powers 🧹</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>🌀 Cache Crusher · mobile webview 🧹</title>
     <style>
         * {
             box-sizing: border-box;
@@ -17,12 +17,12 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 16px;
+            padding: 8px;
         }
         .browser-card {
             width: 100%;
             max-width: 1200px;
-            height: 90vh;
+            height: 95vh;
             background: #2d2d44;
             border-radius: 24px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
@@ -50,18 +50,19 @@
             background: #56567a;
             border: none;
             color: #eeeef5;
-            width: 36px;
-            height: 36px;
+            width: 44px;
+            height: 44px;
             border-radius: 40px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.4rem;
+            font-size: 1.6rem;
             font-weight: 500;
             cursor: pointer;
             transition: 0.15s;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
             line-height: 1;
+            min-width: 44px; /* touch target */
         }
         .nav-btn:hover {
             background: #6f6f9a;
@@ -75,7 +76,7 @@
         }
         .url-bar {
             flex: 1;
-            min-width: 240px;
+            min-width: 200px;
             display: flex;
             background: #1f1f30;
             border-radius: 40px;
@@ -87,10 +88,11 @@
             flex: 1;
             background: transparent;
             border: none;
-            padding: 10px 18px;
+            padding: 12px 18px;
             color: #f0f0fa;
-            font-size: 0.95rem;
+            font-size: 1rem;
             outline: none;
+            min-height: 44px;
         }
         .url-input::placeholder {
             color: #7a7a9a;
@@ -103,10 +105,12 @@
             font-weight: 600;
             padding: 0 20px;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 1rem;
             letter-spacing: 0.3px;
             transition: 0.1s;
             border-left: 1px solid #3d3d60;
+            min-height: 44px;
+            min-width: 60px;
         }
         .go-btn:hover {
             background: #7474ac;
@@ -115,14 +119,15 @@
             display: flex;
             gap: 6px;
             margin-left: 4px;
+            flex-wrap: wrap;
         }
         .action-btn {
             background: #40405c;
             border: none;
             color: #ddddf0;
-            padding: 8px 16px;
+            padding: 10px 16px;
             border-radius: 32px;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: 500;
             display: flex;
             align-items: center;
@@ -132,6 +137,7 @@
             transition: 0.15s;
             border: 1px solid #5a5a7a;
             box-shadow: 0 2px 3px #1a1a28;
+            min-height: 44px;
         }
         .action-btn:hover {
             background: #54547a;
@@ -144,7 +150,7 @@
             box-shadow: none;
         }
         .icon {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             line-height: 1;
         }
         /* webview area */
@@ -163,11 +169,12 @@
             background: #2a2a40;
             color: #b0b0d0;
             font-size: 0.8rem;
-            padding: 6px 16px;
+            padding: 8px 16px;
             border-top: 1px solid #252535;
             display: flex;
-            gap: 24px;
+            gap: 16px;
             align-items: center;
+            flex-wrap: wrap;
         }
         .cache-message {
             color: #b0e0b0;
@@ -180,6 +187,72 @@
         button:disabled {
             opacity: 0.4;
             pointer-events: none;
+        }
+
+        /* 📱 mobile specific adjustments */
+        @media (max-width: 600px) {
+            .toolbar {
+                padding: 8px;
+                gap: 6px;
+            }
+            .nav-buttons {
+                order: 1;
+                width: auto;
+            }
+            .url-bar {
+                order: 2;
+                width: 100%;
+                min-width: 100%;
+                margin: 4px 0;
+            }
+            .action-group {
+                order: 3;
+                width: 100%;
+                justify-content: space-around;
+                margin-left: 0;
+            }
+            .action-btn {
+                flex: 1;
+                justify-content: center;
+                padding: 10px 4px;
+                font-size: 0.8rem;
+                white-space: normal;
+                word-break: keep-all;
+                text-align: center;
+                min-width: 70px;
+            }
+            .action-btn .icon {
+                font-size: 1.1rem;
+            }
+            .status-bar {
+                font-size: 0.7rem;
+                gap: 8px;
+                padding: 6px 12px;
+            }
+            .nav-btn {
+                width: 48px;
+                height: 48px;
+                font-size: 1.8rem;
+            }
+        }
+
+        /* tiny screens */
+        @media (max-width: 380px) {
+            .action-btn {
+                font-size: 0.7rem;
+                padding: 8px 2px;
+            }
+            .action-btn .icon {
+                font-size: 1rem;
+            }
+            .url-input {
+                padding: 10px 12px;
+                font-size: 0.9rem;
+            }
+            .go-btn {
+                padding: 0 12px;
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
@@ -197,13 +270,13 @@
             </div>
             <div class="action-group">
                 <button class="action-btn" id="reloadBtn" title="Reload page (normal)">
-                    <span class="icon">↻</span> Reload
+                    <span class="icon">↻</span> <span class="btn-text">Reload</span>
                 </button>
-                <button class="action-btn" id="hardReloadBtn" title="Hard reload + cache bust (timestamp)">
-                    <span class="icon">⚡</span> Hard reload
+                <button class="action-btn" id="hardReloadBtn" title="Hard reload + cache bust">
+                    <span class="icon">⚡</span> <span class="btn-text">Hard</span>
                 </button>
-                <button class="action-btn" id="clearCacheBtn" title="Clear Cache Storage (origin only) + reload">
-                    <span class="icon">🗑️</span> Empty cache
+                <button class="action-btn" id="clearCacheBtn" title="Clear Cache Storage + reload">
+                    <span class="icon">🗑️</span> <span class="btn-text">Empty</span>
                 </button>
             </div>
         </div>
@@ -215,10 +288,10 @@
 
         <!-- status / feedback -->
         <div class="status-bar">
-            <span>📦 Cache status:</span>
+            <span>📦 Cache:</span>
             <span class="cache-message" id="cacheMsg">—</span>
             <span class="spacer"></span>
-            <span id="originHint">ℹ️ Back/forward work only for same-origin</span>
+            <span id="originHint">ℹ️ same-origin only</span>
         </div>
     </div>
 
@@ -288,7 +361,7 @@
                     const url = new URL(iframe.src);
                     url.searchParams.set('_cb', Date.now().toString());
                     iframe.src = url.toString();
-                    setCacheMessage('⚡ Hard reload (cache bust: ?_cb=...)');
+                    setCacheMessage('⚡ Hard reload (cache bust)');
                 } catch (e) {
                     // fallback if URL parser fails
                     const separator = iframe.src.includes('?') ? '&' : '?';
@@ -308,19 +381,19 @@
                         const keys = await caches.keys();
                         if (keys.length > 0) {
                             await Promise.all(keys.map(key => caches.delete(key)));
-                            message = `🗑️ Cleared ${keys.length} cache storage(s) from this origin.`;
+                            message = `🗑️ Cleared ${keys.length} cache(s).`;
                             cacheClearSuccess = true;
                         } else {
-                            message = '📭 No Cache Storage found on this origin.';
-                            cacheClearSuccess = true; // still considered "success" info
+                            message = '📭 No Cache Storage found.';
+                            cacheClearSuccess = true;
                         }
                     } catch (err) {
                         console.warn('Cache API error:', err);
-                        message = '⚠️ Could not clear Cache Storage.';
+                        message = '⚠️ Could not clear Cache.';
                         cacheClearSuccess = false;
                     }
                 } else {
-                    message = '⚠️ Cache Storage API not supported.';
+                    message = '⚠️ Cache API not supported.';
                 }
 
                 // Also perform a hard reload to bust HTTP cache (if iframe has content)
@@ -329,17 +402,15 @@
                         const url = new URL(iframe.src);
                         url.searchParams.set('_emptyCache', Date.now().toString());
                         iframe.src = url.toString();
-                        message += ' + hard reload with cache bust.';
+                        message += ' + hard reload.';
                     } catch (e) {
-                        // fallback
                         const sep = iframe.src.includes('?') ? '&' : '?';
                         iframe.src = iframe.src + sep + '_emptyCache=' + Date.now();
-                        message += ' + reload (fallback).';
+                        message += ' + reload.';
                     }
                 } else {
-                    // no iframe source, navigate to default maybe?
                     iframe.src = 'https://example.com?_=' + Date.now();
-                    message += ' Loaded default page.';
+                    message += ' Loaded default.';
                 }
 
                 setCacheMessage(message, cacheClearSuccess);
@@ -350,12 +421,12 @@
                 try {
                     if (iframe.contentWindow && iframe.contentWindow.history) {
                         iframe.contentWindow.history.back();
-                        setCacheMessage('← back (if same-origin & history exists)');
+                        setCacheMessage('← back (same-origin only)');
                     } else {
-                        setCacheMessage('❌ Cannot access history (cross-origin)', false);
+                        setCacheMessage('❌ Cannot access history', false);
                     }
                 } catch (e) {
-                    setCacheMessage('❌ back failed – cross-origin restriction', false);
+                    setCacheMessage('❌ back failed', false);
                 }
             });
 
@@ -363,12 +434,12 @@
                 try {
                     if (iframe.contentWindow && iframe.contentWindow.history) {
                         iframe.contentWindow.history.forward();
-                        setCacheMessage('→ forward (if same-origin)');
+                        setCacheMessage('→ forward (same-origin)');
                     } else {
-                        setCacheMessage('❌ Cannot access history (cross-origin)', false);
+                        setCacheMessage('❌ Cannot access history', false);
                     }
                 } catch (e) {
-                    setCacheMessage('❌ forward failed – cross-origin', false);
+                    setCacheMessage('❌ forward failed', false);
                 }
             });
 
@@ -380,13 +451,11 @@
                         urlInput.value = iframeUrl;
                     }
                 } catch (e) {
-                    // cross-origin – we can still try to get src attribute
                     const srcAttr = iframe.src;
                     if (srcAttr && srcAttr !== 'about:blank') {
                         urlInput.value = srcAttr;
                     }
                 }
-                // Briefly show that page loaded
                 setCacheMessage('✓ Page loaded', true);
             });
 
