@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>🧩 side panel webview · controls docked</title>
+    <title>📜 side panel · iframe with history list</title>
     <style>
         * {
             box-sizing: border-box;
@@ -20,7 +20,7 @@
 
         /* --- SIDE PANEL (left) --- */
         .control-panel {
-            width: 300px;
+            width: 320px;
             max-width: 85vw;
             background: rgba(28, 28, 40, 0.85);
             backdrop-filter: blur(16px);
@@ -29,14 +29,13 @@
             display: flex;
             flex-direction: column;
             padding: 20px 16px;
-            gap: 24px;
+            gap: 20px;
             box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
             z-index: 10;
             color: #eee;
             overflow-y: auto;
         }
 
-        /* panel header */
         .panel-header {
             font-size: 1.4rem;
             font-weight: 300;
@@ -46,13 +45,12 @@
             gap: 8px;
             border-bottom: 1px solid rgba(255,255,255,0.2);
             padding-bottom: 12px;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
         .panel-header span {
             font-size: 1.8rem;
         }
 
-        /* navigation row inside panel */
         .nav-row {
             display: flex;
             gap: 12px;
@@ -84,7 +82,6 @@
             transform: scale(0.98);
         }
 
-        /* url bar inside panel */
         .url-section {
             display: flex;
             flex-direction: column;
@@ -132,12 +129,11 @@
             background: rgba(120, 120, 170, 0.9);
         }
 
-        /* action buttons stacked */
         .action-group {
             display: flex;
             flex-direction: column;
             gap: 12px;
-            margin-top: 8px;
+            margin-top: 4px;
         }
         .action-btn {
             background: rgba(60, 60, 90, 0.7);
@@ -170,20 +166,78 @@
             text-align: center;
         }
 
-        /* status area inside panel */
+        /* ----- HISTORY SECTION ----- */
+        .history-section {
+            margin-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.15);
+            padding-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 300px;
+            overflow: hidden;
+        }
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+        }
+        .clear-history {
+            background: rgba(200, 70, 70, 0.6);
+            border: none;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .clear-history:hover {
+            background: rgba(220, 90, 90, 0.9);
+        }
+        .history-list {
+            list-style: none;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 240px;
+            padding-right: 4px;
+        }
+        .history-list li {
+            background: rgba(20, 20, 35, 0.6);
+            border-radius: 30px;
+            padding: 8px 14px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: 0.1s;
+            backdrop-filter: blur(2px);
+        }
+        .history-list li:hover {
+            background: rgba(70, 70, 110, 0.8);
+            border-color: rgba(255,255,255,0.3);
+        }
+        .history-list li:active {
+            background: rgba(100, 100, 150, 0.9);
+        }
+
         .status-area {
             margin-top: auto;
-            padding-top: 20px;
+            padding-top: 16px;
             border-top: 1px solid rgba(255,255,255,0.1);
             font-size: 0.85rem;
             background: rgba(0,0,0,0.2);
             border-radius: 20px;
             padding: 16px;
-        }
-        .status-row {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
         }
         .cache-message {
             color: #b0e0b0;
@@ -199,9 +253,10 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            margin-top: 8px;
         }
 
-        /* --- WEBVIEW (fills rest) --- */
+        /* --- WEBVIEW --- */
         .webview-container {
             flex: 1;
             background: #1c1c2c;
@@ -215,17 +270,11 @@
             display: block;
         }
 
-        /* small screen: panel becomes top bar? but we keep side panel as overlay-ish? 
-           for narrow screens, we collapse panel to a smaller width */
+        /* responsive */
         @media (max-width: 700px) {
             .control-panel {
-                width: 260px;
+                width: 280px;
                 padding: 16px 12px;
-            }
-            .nav-btn {
-                width: 44px;
-                height: 44px;
-                font-size: 1.6rem;
             }
         }
         @media (max-width: 500px) {
@@ -244,7 +293,7 @@
                 padding: 12px;
             }
             .panel-header {
-                display: none;  /* hide header on very small to save space */
+                display: none;
             }
             .nav-row {
                 order: 1;
@@ -264,34 +313,41 @@
                 flex: 1;
                 padding: 12px 6px;
                 justify-content: center;
-                font-size: 0.85rem;
+            }
+            .history-section {
+                order: 4;
+                width: 100%;
+                max-height: 150px;
+            }
+            .history-list {
+                max-height: 100px;
             }
             .status-area {
-                order: 4;
+                order: 5;
                 width: 100%;
                 margin-top: 0;
                 padding: 12px;
             }
             .webview-container {
-                height: calc(100vh - 180px); /* rough, but fine */
+                height: calc(100vh - 320px);
             }
         }
     </style>
 </head>
 <body>
-    <!-- SIDE PANEL (controls) -->
+    <!-- SIDE PANEL -->
     <div class="control-panel">
         <div class="panel-header">
-            <span>🧰</span> WEBVIEW CONTROLS
+            <span>🧰</span> WEBVIEW
         </div>
 
-        <!-- navigation buttons -->
+        <!-- navigation -->
         <div class="nav-row">
             <button class="nav-btn" id="backBtn" title="Back (if same-origin)">←</button>
             <button class="nav-btn" id="forwardBtn" title="Forward (if same-origin)">→</button>
         </div>
 
-        <!-- URL section -->
+        <!-- URL -->
         <div class="url-section">
             <div class="url-label">enter address</div>
             <div class="url-bar">
@@ -300,7 +356,7 @@
             </div>
         </div>
 
-        <!-- action buttons stacked -->
+        <!-- actions -->
         <div class="action-group">
             <button class="action-btn" id="reloadBtn" title="Reload page (normal)">
                 <span class="icon">↻</span> Reload
@@ -313,17 +369,29 @@
             </button>
         </div>
 
-        <!-- status area inside panel -->
+        <!-- 📜 HISTORY LIST (new) -->
+        <div class="history-section">
+            <div class="history-header">
+                <span>📋 history</span>
+                <button class="clear-history" id="clearHistoryBtn">clear</button>
+            </div>
+            <ul class="history-list" id="historyList">
+                <!-- filled dynamically -->
+                <li style="opacity:0.6;">example.com</li>
+            </ul>
+        </div>
+
+        <!-- status -->
         <div class="status-area">
             <div class="status-row">
-                <span style="opacity:0.8;">📦 cache status</span>
+                <span style="opacity:0.8;">📦 cache</span>
                 <span class="cache-message" id="cacheMsg">—</span>
-                <span class="hint">ℹ️ back/forward: same-origin only</span>
+                <span class="hint">ℹ️ history = visited pages</span>
             </div>
         </div>
     </div>
 
-    <!-- WEBVIEW CONTAINER (fills rest) -->
+    <!-- WEBVIEW -->
     <div class="webview-container">
         <iframe id="webview" src="https://example.com" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation allow-top-navigation"></iframe>
     </div>
@@ -339,7 +407,75 @@
             const backBtn = document.getElementById('backBtn');
             const forwardBtn = document.getElementById('forwardBtn');
             const cacheMsgSpan = document.getElementById('cacheMsg');
+            
+            // --- history elements ---
+            const historyList = document.getElementById('historyList');
+            const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 
+            // History array (stores URLs as strings)
+            let historyUrls = [];
+
+            // Load initial URL into history if valid
+            function addToHistory(url) {
+                if (!url || url === 'about:blank' || url === '') return;
+                // avoid duplicate consecutive identical URLs? keep simple: add, but remove previous identical to keep list tidy
+                const index = historyUrls.indexOf(url);
+                if (index !== -1) {
+                    // move it to top (most recent)
+                    historyUrls.splice(index, 1);
+                }
+                historyUrls.unshift(url);  // newest first
+                renderHistory();
+            }
+
+            function renderHistory() {
+                if (historyUrls.length === 0) {
+                    historyList.innerHTML = '<li style="opacity:0.5;">— empty —</li>';
+                    return;
+                }
+                let html = '';
+                // show max 20 to avoid clutter
+                const recent = historyUrls.slice(0, 20);
+                recent.forEach(url => {
+                    // trim long urls for display
+                    const display = url.length > 50 ? url.substring(0, 47) + '…' : url;
+                    html += `<li title="${url.replace(/"/g, '&quot;')}">${display}</li>`;
+                });
+                historyList.innerHTML = html;
+
+                // attach click listeners to each history item
+                document.querySelectorAll('#historyList li').forEach(li => {
+                    li.addEventListener('click', (e) => {
+                        const url = li.getAttribute('title') || li.textContent; // title stores full url
+                        if (url && url !== '— empty —') {
+                            navigateTo(url);
+                        }
+                    });
+                });
+            }
+
+            // clear history
+            clearHistoryBtn.addEventListener('click', () => {
+                historyUrls = [];
+                renderHistory();
+                setCacheMessage('🧹 history cleared');
+            });
+
+            // helper to update input and iframe, and record history
+            function navigateTo(url) {
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    url = 'https://' + url;
+                }
+                try {
+                    iframe.src = url;
+                    urlInput.value = url;
+                    // we'll add to history on load event (avoids duplicates if navigate fails)
+                } catch (e) {
+                    setCacheMessage('Invalid URL', false);
+                }
+            }
+
+            // --- existing functions with small tweak to record history on load ---
             function setCacheMessage(msg, isSuccess = true) {
                 cacheMsgSpan.textContent = msg;
                 cacheMsgSpan.style.color = isSuccess ? '#b0e0b0' : '#f9b5b5';
@@ -349,18 +485,6 @@
                         cacheMsgSpan.style.color = '#b0e0b0';
                     }
                 }, 4000);
-            }
-
-            function navigateTo(url) {
-                if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                    url = 'https://' + url;
-                }
-                try {
-                    iframe.src = url;
-                    urlInput.value = url;
-                } catch (e) {
-                    setCacheMessage('Invalid URL', false);
-                }
             }
 
             goBtn.addEventListener('click', () => {
@@ -377,6 +501,7 @@
                 iframe.src = '';
                 iframe.src = currentSrc;
                 setCacheMessage('↻ Reload triggered');
+                // reload does NOT add new history entry (same url) – we keep as is.
             });
 
             hardReloadBtn.addEventListener('click', () => {
@@ -386,6 +511,7 @@
                     url.searchParams.set('_cb', Date.now().toString());
                     iframe.src = url.toString();
                     setCacheMessage('⚡ Hard reload (cache bust)');
+                    // we don't add to history because it's a cache-bust variant of same page
                 } catch (e) {
                     const sep = iframe.src.includes('?') ? '&' : '?';
                     iframe.src = iframe.src + sep + '_cb=' + Date.now();
@@ -440,6 +566,7 @@
                     if (iframe.contentWindow && iframe.contentWindow.history) {
                         iframe.contentWindow.history.back();
                         setCacheMessage('← back (same-origin only)');
+                        // history will be updated on iframe load event
                     } else {
                         setCacheMessage('❌ Cannot access history', false);
                     }
@@ -461,25 +588,56 @@
                 }
             });
 
+            // --- capture iframe navigation to record history ---
             iframe.addEventListener('load', () => {
+                let loadedUrl = null;
                 try {
-                    const iframeUrl = iframe.contentWindow.location.href;
-                    if (iframeUrl && iframeUrl !== 'about:blank') {
-                        urlInput.value = iframeUrl;
-                    }
+                    // try to get full url from contentWindow (same-origin only)
+                    loadedUrl = iframe.contentWindow.location.href;
                 } catch (e) {
-                    const srcAttr = iframe.src;
-                    if (srcAttr && srcAttr !== 'about:blank') {
-                        urlInput.value = srcAttr;
+                    // fallback to iframe.src (may be partial or original)
+                    loadedUrl = iframe.src;
+                }
+                // clean up blank or about:blank
+                if (loadedUrl && loadedUrl !== 'about:blank' && !loadedUrl.startsWith('about:')) {
+                    // ensure it's a proper url
+                    try {
+                        new URL(loadedUrl); // validate
+                        urlInput.value = loadedUrl;
+                        addToHistory(loadedUrl);
+                    } catch (err) {
+                        // if invalid, keep old
                     }
+                } else if (iframe.src && iframe.src !== 'about:blank') {
+                    // fallback to src attribute
+                    urlInput.value = iframe.src;
+                    addToHistory(iframe.src);
                 }
                 setCacheMessage('✓ Page loaded', true);
             });
 
+            // initial load: add starting url to history
             window.addEventListener('load', () => {
-                if (iframe.src) urlInput.value = iframe.src;
+                if (iframe.src && iframe.src !== 'about:blank') {
+                    urlInput.value = iframe.src;
+                    addToHistory(iframe.src);
+                } else {
+                    // default
+                    const defaultUrl = 'https://example.com';
+                    iframe.src = defaultUrl;
+                    urlInput.value = defaultUrl;
+                    addToHistory(defaultUrl);
+                }
             });
+
+            // helper to add initial
+            setTimeout(() => {
+                // ensure history shows initial
+                if (historyUrls.length === 0 && iframe.src && iframe.src !== 'about:blank') {
+                    addToHistory(iframe.src);
+                }
+            }, 100);
         })();
     </script>
 </body>
-    </html>
+</html>
